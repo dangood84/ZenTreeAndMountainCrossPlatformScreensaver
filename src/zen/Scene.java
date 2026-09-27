@@ -395,30 +395,31 @@ final class Scene {
             float uz = sx * nny - sy * nnx;
             float size = scale * (0.55f + rng.nextFloat() * 0.35f);
             float aspect = size * (0.42f + rng.nextFloat() * 0.2f);
+            // Each card picks one autumn tone. About one in four stays green, so the crown is not a single orange.
             int tone = rng.nextInt(4);
             float cr;
             float cg;
             float cb;
             switch (tone) {
-                case 0 -> {
-                    cr = srgb(0.27f);
-                    cg = srgb(0.40f);
-                    cb = srgb(0.16f);
-                }
-                case 1 -> {
-                    cr = srgb(0.20f);
-                    cg = srgb(0.33f);
-                    cb = srgb(0.13f);
-                }
-                case 2 -> {
-                    cr = srgb(0.38f);
-                    cg = srgb(0.44f);
-                    cb = srgb(0.17f);
-                }
-                default -> {
-                    cr = srgb(0.16f);
-                    cg = srgb(0.28f);
+                case 0 -> { // gold
+                    cr = srgb(0.72f);
+                    cg = srgb(0.48f);
                     cb = srgb(0.12f);
+                }
+                case 1 -> { // amber
+                    cr = srgb(0.78f);
+                    cg = srgb(0.36f);
+                    cb = srgb(0.10f);
+                }
+                case 2 -> { // russet
+                    cr = srgb(0.55f);
+                    cg = srgb(0.22f);
+                    cb = srgb(0.08f);
+                }
+                default -> { // still green
+                    cr = srgb(0.28f);
+                    cg = srgb(0.38f);
+                    cb = srgb(0.14f);
                 }
             }
             addCard(cx, cy, cz, sx, sy, sz, ux, uy, uz, nnx, nny, nnz, size, aspect, cr, cg, cb);
