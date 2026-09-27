@@ -337,7 +337,7 @@ final class Scene {
             for (int i = 1; i <= clumps; i++) {
                 float t = i / (float) (clumps + 0.2f);
                 float puff = depth == 0 ? 0.85f : depth == 1 ? 1.05f : 1.25f;
-                addFoliage(lerp(x, ex, t), lerp(y, ey, t), lerp(z, ez, t), puff);
+                //addFoliage(lerp(x, ex, t), lerp(y, ey, t), lerp(z, ez, t), puff);
             }
         }
         if (depth == 0) {
@@ -356,13 +356,13 @@ final class Scene {
             float nlen = len * (0.62f + rng.nextFloat() * 0.1f);
             float nrad = rad * (0.56f + rng.nextFloat() * 0.06f);
             if (nrad < 0.045f) {
-                addFoliage(ex, ey, ez, 0.8f);
+                //addFoliage(ex, ey, ez, 0.8f);
                 continue;
             }
             grow(ex, ey, ez, deflect[0], deflect[1], deflect[2], nlen, nrad, depth - 1);
         }
     }
-
+/*
     private void addFoliage(float x, float y, float z, float scale) {
         int cards = 4;
         for (int i = 0; i < cards; i++) {
@@ -424,6 +424,7 @@ final class Scene {
             addCard(cx, cy, cz, sx, sy, sz, ux, uy, uz, nnx, nny, nnz, size, aspect, cr, cg, cb);
         }
     }
+*/
 
     private void addCard(float cx, float cy, float cz,
                          float sx, float sy, float sz,
