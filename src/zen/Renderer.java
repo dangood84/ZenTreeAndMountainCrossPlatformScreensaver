@@ -89,6 +89,7 @@ final class Renderer {
 
         fillSky();
         stampSun();
+        stampMoon();
         Arrays.fill(depth, 0f);
         lightAndTransform(scene.world, seconds);
         drawMesh(scene.world);
@@ -538,6 +539,75 @@ final class Renderer {
                 pixels[row + x] = pack(red, green, blue);
             }
         }
+    }
+
+    /**
+     * A moon in screen pixels, pinned to the top-left. The sun is a world direction
+     * projected through the camera, so it moves as the view climbs. This disc does not.
+     * Triangles are drawn after this, so the tree and the mountain cover it when they overlap.
+     *
+     * <p>Screen Y grows downward, so a small {@code py} is near the top. A pixel is inside a
+     * disc when its distance from the centre is under the radius. A second disc, shifted
+     * down and right, covers the shadow side and leaves the crescent.
+     */
+    private void stampMoon() {
+        float px = width * 0.16f;
+        float py = height * 0.14f;
+        float radius = height * 0.055f;
+        float cutX = px + radius * 0.48f;
+        float cutY = py + radius * 0.28f;
+        float cutR = radius * 0.86f;
+        float halo = radius * 1.65f;
+        int x0 = Math.max(0, (int) (px - halo));
+        int y0 = Math.max(0, (int) (py - halo));
+        int x1 = Math.min(width - 1, (int) (px + halo));
+        int y1 = Math.min(height - 1, (int) (py + halo));
+        float moonR = Scene.srgb(0.93f);
+        float moonG = Scene.srgb(0.91f);
+        float moonB = Scene.srgb(0.80f);
+        float haloR2 = halo * halo;
+        for (int y = y0; y <= y1; y++) {
+            skyColorAt(y);
+            float dy = y + 0.5f - py;
+            float cutDy = y + 0.5f - cutY;
+            int row = y * width;
+            for (int x = x0; x <= x1; x++) {
+                float dx = x + 0.5f - px;
+                float d2 = dx * dx + dy * dy;
+                if (d2 >= haloR2) {
+                    continue;
+                }
+                float d = (float) Math.sqrt(d2);
+                float cutDx = x + 0.5f - cutX;
+                float cutD = (float) Math.sqrt(cutDx * cutDx + cutDy * cutDy);
+                // 1 inside the bright disc, fading across a thin rim so the edge is not a hard step.
+                float lit = 1f - smooth(radius * 0.90f, radius, d);
+                // 1 inside the shadow disc. Subtracting it from the bright disc leaves the crescent.
+                float shadow = 1f - smooth(cutR * 0.90f, cutR, cutD);
+                float crescent = lit * (1f - shadow);
+                float glow = 1f - d / halo;
+                glow = glow * glow * 0.16f;
+                if (crescent <= 0f && glow <= 0.004f) {
+                    continue;
+                }
+                float red = skyLR + (moonR - skyLR) * crescent + glow * 0.45f;
+                float green = skyLG + (moonG - skyLG) * crescent + glow * 0.42f;
+                float blue = skyLB + (moonB - skyLB) * crescent + glow * 0.28f;
+                pixels[row + x] = pack(red, green, blue);
+            }
+        }
+    }
+
+    /** 0 below edge0, 1 above edge1, and a smooth curve between. */
+    private static float smooth(float edge0, float edge1, float x) {
+        float t = (x - edge0) / (edge1 - edge0);
+        if (t <= 0f) {
+            return 0f;
+        }
+        if (t >= 1f) {
+            return 1f;
+        }
+        return t * t * (3f - 2f * t);
     }
 
     private void applyFade(float amount) {
