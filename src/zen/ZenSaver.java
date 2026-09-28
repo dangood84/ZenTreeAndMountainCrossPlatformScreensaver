@@ -131,9 +131,11 @@ public final class ZenSaver {
         holder.running = true;
         holder.quality = quality;
         holder.pinned = options.qualitySet;
+        Birdsong birdsong = new Birdsong();
 
         bind(view, "ESCAPE", () -> {
             holder.running = false;
+            birdsong.stop();
             frame.dispose();
             System.exit(0);
         });
@@ -162,6 +164,7 @@ public final class ZenSaver {
             @Override
             public void windowClosing(WindowEvent e) {
                 holder.running = false;
+                birdsong.stop();
             }
         });
 
@@ -176,6 +179,8 @@ public final class ZenSaver {
             toggleFullscreen(frame, view);
         }
         painter.start();
+        // Same pause flag as the picture, so Space holds both. Snapshots and the bench never reach here.
+        birdsong.start(() -> holder.paused);
     }
 
     private static void pin(Holder holder, int quality) {

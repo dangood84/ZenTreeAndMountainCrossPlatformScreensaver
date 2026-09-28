@@ -1,0 +1,10 @@
+blackbird.wav
+
+Common blackbird (Turdus merula) song, about five seconds.
+CC0 (public domain). Attribution is not required.
+Downloaded from BigSoundBank, sound 3494, "Common Blackbird #21".
+https://bigsoundbank.com/common-blackbird-21-s3494.html
+Author: Le tiroir du fond
+
+The original file was 24-bit, 48 kHz. This copy is 16-bit, 44.1 kHz mono
+so Java's built-in sound player can open it. The song itself is unchanged.
