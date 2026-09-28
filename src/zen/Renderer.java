@@ -89,6 +89,7 @@ final class Renderer {
 
         fillSky();
         stampSun();
+        stampMoon();
         Arrays.fill(depth, 0f);
         lightAndTransform(scene.world, seconds);
         drawMesh(scene.world);
@@ -538,6 +539,79 @@ final class Renderer {
                 pixels[row + x] = pack(red, green, blue);
             }
         }
+    }
+
+    /**
+     * A full moon in the top-left of the picture. Same place as the crescent on the other
+     * branch, and drawn the same way: a disc is every pixel whose distance from the centre
+     * is under the radius. This one keeps the whole disc. The crescent punched a second
+     * disc out of it.
+     *
+     * <p>A few smaller discs inside the face are darker, which is what makes it read as a
+     * moon rather than a blank lamp. Triangles are drawn afterwards, so the tree can cover it.
+     */
+    private void stampMoon() {
+        float px = width * 0.16f;
+        float py = height * 0.14f;
+        float radius = height * 0.055f;
+        float halo = radius * 1.55f;
+        int x0 = Math.max(0, (int) (px - halo));
+        int y0 = Math.max(0, (int) (py - halo));
+        int x1 = Math.min(width - 1, (int) (px + halo));
+        int y1 = Math.min(height - 1, (int) (py + halo));
+        float moonR = Scene.srgb(0.93f);
+        float moonG = Scene.srgb(0.91f);
+        float moonB = Scene.srgb(0.82f);
+        float haloR2 = halo * halo;
+        for (int y = y0; y <= y1; y++) {
+            skyColorAt(y);
+            float dy = y + 0.5f - py;
+            int row = y * width;
+            for (int x = x0; x <= x1; x++) {
+                float dx = x + 0.5f - px;
+                float d2 = dx * dx + dy * dy;
+                if (d2 >= haloR2) {
+                    continue;
+                }
+                float d = (float) Math.sqrt(d2);
+                // 1 across the whole disc, fading only at the rim.
+                float lit = 1f - smooth(radius * 0.92f, radius, d);
+                // Darker patches. Each is 1 at its own centre and 0 outside its own radius.
+                float maria = spot(dx, dy, -radius * 0.22f, radius * 0.08f, radius * 0.34f);
+                maria = Math.max(maria, spot(dx, dy, radius * 0.20f, -radius * 0.18f, radius * 0.22f));
+                maria = Math.max(maria, spot(dx, dy, radius * 0.02f, radius * 0.32f, radius * 0.16f));
+                float face = lit * (1f - 0.28f * maria);
+                float glow = 1f - d / halo;
+                glow = glow * glow * 0.14f;
+                if (face <= 0f && glow <= 0.004f) {
+                    continue;
+                }
+                float red = skyLR + (moonR - skyLR) * face + glow * 0.40f;
+                float green = skyLG + (moonG - skyLG) * face + glow * 0.38f;
+                float blue = skyLB + (moonB - skyLB) * face + glow * 0.26f;
+                pixels[row + x] = pack(red, green, blue);
+            }
+        }
+    }
+
+    /** 1 at (ox, oy), falling to 0 at {@code radius}. dx and dy are already relative to the moon centre. */
+    private static float spot(float dx, float dy, float ox, float oy, float radius) {
+        float px = dx - ox;
+        float py = dy - oy;
+        float d = (float) Math.sqrt(px * px + py * py);
+        return 1f - smooth(radius * 0.35f, radius, d);
+    }
+
+    /** 0 below edge0, 1 above edge1, and a smooth curve between. */
+    private static float smooth(float edge0, float edge1, float x) {
+        float t = (x - edge0) / (edge1 - edge0);
+        if (t <= 0f) {
+            return 0f;
+        }
+        if (t >= 1f) {
+            return 1f;
+        }
+        return t * t * (3f - 2f * t);
     }
 
     private void applyFade(float amount) {
